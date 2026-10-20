@@ -1,40 +1,81 @@
-import { useState } from "react";
+import { useReducer } from "react";
 
 import { signIn } from "../../services/api";
 
 import "./styles.css";
 
+const initialState = {
+  username: "",
+  password: "",
+  isLoading: false,
+  error: "",
+  isSignedIn: false,
+};
+
+const signInReducer = (state, action) => {
+  switch (action.type) {
+    case "SIGN_IN":
+      return {
+        ...state,
+        isLoading: true,
+      };
+    case "SUCCESS":
+      return {
+        ...state,
+        isLoading: false,
+        isSignedIn: true,
+        error: "",
+      };
+
+    case "ERROR":
+      return {
+        ...state,
+        isLoading: false,
+        error: "Usuário ou Senha inválidos",
+      };
+
+    case "SIGN_OUT":
+      return {
+        ...state,
+        isSignedIn: false,
+        username: "",
+        password: "",
+      };
+
+    case "SET_ATTRIBUTE":
+      return {
+        ...state,
+        [action.fieldName]: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
 const SignInForm = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [issSignedIn, setIsSignedIn] = useState(false);
+  const [state, dispatch] = useReducer(signInReducer, initialState);
+  const { username, password, isLoading, error, isSignedIn } = state;
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
-    setIsLoading(true);
+    dispatch({ type: "SIGN_IN" });
 
     try {
       await signIn({ username, password });
-      setIsSignedIn(true);
-      setError("");
-      setUsername("");
-      setPassword("");
+      dispatch({ type: "SUCCESS" });
     } catch (error) {
-      setError("Usuário ou Senha inválidos");
+      dispatch({ type: "ERROR" });
     }
-
-    setIsLoading(false);
   };
 
   return (
     <main>
-      {issSignedIn ? (
+      {isSignedIn ? (
         <>
           <h1>Olá {username}!</h1>
-          <button onClick={() => setIsSignedIn(false)}>Sair</button>
+          <button onClick={() => dispatch({ type: "SIGN_OUT" })}>Sair</button>
         </>
       ) : (
         <form onSubmit={handleFormSubmit}>
@@ -47,7 +88,13 @@ const SignInForm = () => {
             <input
               type="text"
               value={username}
-              onChange={({ target }) => setUsername(target.value)}
+              onChange={({ target }) =>
+                dispatch({
+                  type: "SET_ATTRIBUTE",
+                  fieldName: "username",
+                  payload: target.value,
+                })
+              }
             />
           </label>
 
@@ -56,7 +103,13 @@ const SignInForm = () => {
             <input
               type="password"
               value={password}
-              onChange={({ target }) => setPassword(target.value)}
+              onChange={({ target }) =>
+                dispatch({
+                  type: "SET_ATTRIBUTE",
+                  fieldName: "password",
+                  payload: target.value,
+                })
+              }
             />
           </label>
 
