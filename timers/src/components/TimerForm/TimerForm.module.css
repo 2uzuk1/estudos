@@ -1,0 +1,14 @@
+.form {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.input {
+  padding: 1rem 0.5rem;
+}
+
+.submitButton {
+  padding: 1rem 1rem;
+}
